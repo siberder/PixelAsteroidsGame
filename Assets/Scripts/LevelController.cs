@@ -23,7 +23,7 @@ public class LevelController : MonoSingleton<LevelController>
     public Vector3 BotLeftBoundCorner { get; private set; }
     public Camera MainCam { get; private set; }
 
-    bool gameOver;
+    bool gameOver = true;
 
     public SpaceshipController Player { get; private set; }
 
@@ -63,19 +63,22 @@ public class LevelController : MonoSingleton<LevelController>
 
     private void Start()
     {
-        StartNewGame();
+        //StartNewGame();
     }
 
     public void Update()
     {
-        if(enemySpawnCooldownLeft <= 0)
+        if (!gameOver)
         {
-            SpawnAsteroid();
-            ResetEnemySpawnCooldown();
-        }
-        else
-        {
-            enemySpawnCooldownLeft -= Time.deltaTime;
+            if (enemySpawnCooldownLeft <= 0)
+            {
+                SpawnAsteroid();
+                ResetEnemySpawnCooldown();
+            }
+            else
+            {
+                enemySpawnCooldownLeft -= Time.deltaTime;
+            }
         }
     }
 
