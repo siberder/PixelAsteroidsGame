@@ -72,7 +72,6 @@ public class LevelController : MonoSingleton<LevelController>
 
     private void Start()
     {
-        //StartNewGame();
         StartCoroutine(AnimateSpaceShip_Intro());
     }
 
@@ -92,9 +91,24 @@ public class LevelController : MonoSingleton<LevelController>
         }
     }
 
+    public void ShowMenuIntro()
+    {
+        StartCoroutine(AnimateSpaceShip_Intro());
+    }
+
     IEnumerator AnimateSpaceShip_Intro()
     {
-        yield return new WaitForSeconds(1f);
+        UIController.Instance.ShowMenuScreen();
+        SkipIntro = false;
+
+        float time = 0f;
+        yield return new WaitUntil(() => (time += Time.deltaTime) >= 3f || SkipIntro);
+
+        if(SkipIntro)
+        {
+            StartNewGame();
+            yield break;
+        }
 
         Player.AnimatingIntro = true;
 
@@ -111,7 +125,7 @@ public class LevelController : MonoSingleton<LevelController>
         yield return new WaitUntil(() => SkipIntro);
 
         ResetGame();
-        EnableGameUI(true);
+        UIController.Instance.ShowGameUI();
 
         startPos = Player.transform.position;
         animTime = 0.5f;
@@ -124,13 +138,7 @@ public class LevelController : MonoSingleton<LevelController>
 
         Player.AnimatingIntro = false;
         StartNewGame();
-    }
-
-    void EnableGameUI(bool enable)
-    {
-        UIController.Instance.SetGameScreenVisible(enable);
-        UIController.Instance.SetMenuVisible(!enable);
-    }
+    }    
 
     void ResetGame()
     {
@@ -147,13 +155,14 @@ public class LevelController : MonoSingleton<LevelController>
         ResetEnemySpawnCooldown();
         Player.Respawn();        
         gameOver = false;
-        EnableGameUI(true);
+        UIController.Instance.ShowGameUI();
     }
 
     public void SetGameOver()
     {
         print("Gamover");
         gameOver = true;
+        UIController.Instance.ShowGameOverScreen();
     }
 
     void ResetEnemySpawnCooldown()

@@ -13,8 +13,7 @@ public class UIController : MonoSingleton<UIController>
     public Image liveImagePrefab;
 
     [Header("Screens")]
-    public Animator menuScreen;
-    public Animator gameScreen;
+    public List<Animator> screens = new List<Animator>();
 
 
     List<Image> livesImages = new List<Image>();
@@ -43,15 +42,22 @@ public class UIController : MonoSingleton<UIController>
         }
     }
 
-    public void SetMenuVisible(bool visible)
+    public Animator GetScreenByName(string screenName) => screens.Find(x => x.name == screenName);
+
+    public void ShowScreen(string screenName) => ShowScreen(GetScreenByName(screenName));
+
+    public void ShowScreen(Animator screen)
     {
-        SetScreenVisible(menuScreen, visible);
+        foreach (var s in screens)
+        {
+            SetScreenVisible(s, screen == s);
+        }
     }
 
-    public void SetGameScreenVisible(bool visible)
-    {
-        SetScreenVisible(gameScreen, visible);
-    }
+    public void ShowMenuScreen() => ShowScreen("Menu");
+    public void ShowGameUI() => ShowScreen("Game");
+    public void ShowHighscores() => ShowScreen("Highscores");
+    public void ShowGameOverScreen() => ShowScreen("GameOver");
 
     void SetScreenVisible(Animator animator, bool visible)
     {
@@ -60,14 +66,21 @@ public class UIController : MonoSingleton<UIController>
 
     public void UI_StartButton()
     {
-        if(firstLaunch)
-        {
-            firstLaunch = false;
-            LevelController.Instance.SkipIntro = true;
-        }
-        else
-        {
-            LevelController.Instance.StartNewGame();
-        }
+        LevelController.Instance.SkipIntro = true;
+    }
+
+    public void UI_GameOver_OK()
+    {
+        ShowHighscores();
+    }
+
+    public void UI_HighScores_NewGame()
+    {
+        LevelController.Instance.ShowMenuIntro();
+    }
+
+    public void UI_Menu_Highscores()
+    {
+        ShowHighscores();
     }
 }
