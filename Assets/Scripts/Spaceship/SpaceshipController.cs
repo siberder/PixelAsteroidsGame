@@ -37,6 +37,8 @@ public class SpaceshipController : Entity
         }
     }
 
+    public bool AnimatingIntro { get; set; }
+
     private bool Anim_Invincible
     { 
         get => animator.GetBool("Invincible");
@@ -48,6 +50,7 @@ public class SpaceshipController : Entity
         get => thrustSprite.activeSelf;
         set => thrustSprite.SetActive(value);
     }
+    
     public bool Invincible
     {
         get => invincible;
@@ -66,12 +69,15 @@ public class SpaceshipController : Entity
 
     void Update()
     {
-        if (!Dead)
+        if (!AnimatingIntro)
         {
-            HandleInput();
-        }
+            if (!Dead)
+            {
+                HandleInput();
+            }
 
-        WrapWorldPosition();
+            WrapWorldPosition();
+        }
     }
 
     private void FixedUpdate()
@@ -111,7 +117,7 @@ public class SpaceshipController : Entity
 
     void HandleMoving()
     {       
-        ThrustSpriteVisible = inputVertical > float.Epsilon;
+        ThrustSpriteVisible = inputVertical > float.Epsilon || AnimatingIntro;
 
         EntityRigidbody.AddForce(inputVertical * transform.up * acceleration * Time.fixedDeltaTime);
         transform.Rotate(0, 0, -inputHorizontal * turnSpeed * Time.fixedDeltaTime);

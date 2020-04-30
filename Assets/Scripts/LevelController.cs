@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using UnityEditor.Timeline;
 using UnityEngine;
 
 public class LevelController : MonoSingleton<LevelController>
@@ -14,13 +15,21 @@ public class LevelController : MonoSingleton<LevelController>
     public float playerInvincibilityTime = 3f;
     public float playerRespawnDelay = 2f;
     public int playerDeathReward = 100;
-    
+    public float offscreenOffset = 1f;
+
     [Header("Prefabs")]
     public List<Asteroid> asteroidPrefabs = new List<Asteroid>();
+
+    [Header("References")]
+    public Transform introPosition;
+    public Transform startPosition;
+
 
     float enemySpawnCooldownLeft;
     public Vector3 TopRightBoundCorner { get; private set; }
     public Vector3 BotLeftBoundCorner { get; private set; }
+    public bool SkipIntro { get; set; }
+
     public Camera MainCam { get; private set; }
 
     bool gameOver = true;
@@ -64,6 +73,7 @@ public class LevelController : MonoSingleton<LevelController>
     private void Start()
     {
         //StartNewGame();
+        StartCoroutine(AnimateSpaceShip_Intro());
     }
 
     public void Update()
@@ -82,15 +92,62 @@ public class LevelController : MonoSingleton<LevelController>
         }
     }
 
+    IEnumerator AnimateSpaceShip_Intro()
+    {
+        yield return new WaitForSeconds(1f);
+
+        Player.AnimatingIntro = true;
+
+        var curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        var startPos = GetOffscreenPoint(new Vector2(0, -1f));
+        var animTime = 2f;
+        for (float _animTime = 0; _animTime < animTime; _animTime += Time.deltaTime)
+        {
+            float t = _animTime / animTime;
+            Player.transform.position = Vector3.Lerp(startPos, introPosition.position, curve.Evaluate(t));
+            yield return null;
+        }
+
+        yield return new WaitUntil(() => SkipIntro);
+
+        ResetGame();
+        EnableGameUI(true);
+
+        startPos = Player.transform.position;
+        animTime = 0.5f;
+        for (float _animTime = 0; _animTime < animTime; _animTime += Time.deltaTime)
+        {
+            float t = _animTime / animTime;
+            Player.transform.position = Vector3.Lerp(startPos, startPosition.position, curve.Evaluate(t));
+            yield return null;
+        }
+
+        Player.AnimatingIntro = false;
+        StartNewGame();
+    }
+
+    void EnableGameUI(bool enable)
+    {
+        UIController.Instance.SetGameScreenVisible(enable);
+        UIController.Instance.SetMenuVisible(!enable);
+    }
+
+    void ResetGame()
+    {
+        Score = 0;
+        Lives = maxPlayerLives;
+    }
+
     [NaughtyAttributes.Button]
     public void StartNewGame()
     {
+        print("Starting new game");
+        ResetGame();
         DestroyEntities();
         ResetEnemySpawnCooldown();
-        Player.Respawn();
-        Score = 0;
-        Lives = maxPlayerLives;
+        Player.Respawn();        
         gameOver = false;
+        EnableGameUI(true);
     }
 
     public void SetGameOver()
@@ -155,7 +212,6 @@ public class LevelController : MonoSingleton<LevelController>
     public Vector3 GetRandomOffscreenPoint()
     {
         Vector2 rndPos = Vector2.zero;
-        float offset = 1f;
 
         if (UnityEngine.Random.value > 0.5f)
         {
@@ -163,11 +219,11 @@ public class LevelController : MonoSingleton<LevelController>
 
             if (UnityEngine.Random.value > 0.5f)
             {
-                rndPos.y = TopRightBoundCorner.y + offset;
+                rndPos.y = TopRightBoundCorner.y + offscreenOffset;
             }
             else
             {
-                rndPos.y = BotLeftBoundCorner.y - offset;
+                rndPos.y = BotLeftBoundCorner.y - offscreenOffset;
             }
         }
         else
@@ -176,15 +232,25 @@ public class LevelController : MonoSingleton<LevelController>
 
             if (UnityEngine.Random.value > 0.5f)
             {
-                rndPos.x = TopRightBoundCorner.x + offset;
+                rndPos.x = TopRightBoundCorner.x + offscreenOffset;
             }
             else
             {
-                rndPos.x = BotLeftBoundCorner.x - offset;
+                rndPos.x = BotLeftBoundCorner.x - offscreenOffset;
             }
         }
 
         return rndPos;
+    }
+
+    public Vector2 GetOffscreenPoint(Vector2 normalizedPosition)
+    {
+        var nrm = (normalizedPosition + Vector2.one) * 0.5f;
+        return new Vector2
+        {
+            x = Mathf.Lerp(BotLeftBoundCorner.x - offscreenOffset, TopRightBoundCorner.x + offscreenOffset, nrm.x),
+            y = Mathf.Lerp(BotLeftBoundCorner.y - offscreenOffset, TopRightBoundCorner.y + offscreenOffset, nrm.y),
+        };
     }
 
     #endregion
