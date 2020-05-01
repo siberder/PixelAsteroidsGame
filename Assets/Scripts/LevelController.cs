@@ -8,6 +8,8 @@ using UnityEngine;
 
 public class LevelController : MonoSingleton<LevelController>
 {
+    [BoxGroup("Highscores Settings")] public string serverBaseUrl = "http://127.0.0.1:8000/";
+
     [BoxGroup("Player Settings")] public int maxPlayerLives = 3;
     [BoxGroup("Player Settings")] public float playerInvincibilityTime = 3f;
     [BoxGroup("Player Settings")] public float playerRespawnDelay = 2f;
@@ -67,8 +69,7 @@ public class LevelController : MonoSingleton<LevelController>
         PlayAreaBounds = MainCam.OrthographicBounds();
         TopRightBoundCorner = PlayAreaBounds.center + PlayAreaBounds.extents;
         BotLeftBoundCorner = PlayAreaBounds.center - PlayAreaBounds.extents;
-    }
-    
+    }    
 
     private void Start()
     {
@@ -141,12 +142,13 @@ public class LevelController : MonoSingleton<LevelController>
     {
         while(spawnedEntities.Count > 0)
         {
-            if (spawnedEntities[0])
+            var entity = spawnedEntities[0];
+            if (entity != null)
             {
-                Destroy(spawnedEntities[0].gameObject);
+                entity.DestroyEntity();
             }
 
-            spawnedEntities.RemoveAt(0);
+            spawnedEntities.Remove(entity);
         }
     }
 
@@ -177,7 +179,6 @@ public class LevelController : MonoSingleton<LevelController>
         var asteroid = Instantiate(asteroidPrefab, GetRandomOffscreenPoint(), Quaternion.identity);
         asteroid.SetRandomSkin();
         asteroid.SetForceTowardPoint(UnityEngine.Random.insideUnitSphere * asteroidRandomDistanceFromTarget);
-        asteroid.OnDestroy += (a) => spawnedEntities.Remove(a);
 
         spawnedEntities.Add(asteroid);
     }
@@ -187,7 +188,6 @@ public class LevelController : MonoSingleton<LevelController>
     {
         var enemy = Instantiate(enemySpaceships[UnityEngine.Random.Range(0, enemySpaceships.Count)], GetRandomOffscreenPoint(), Quaternion.identity);
         enemy.Init();
-        enemy.OnDestroy += (a) => spawnedEntities.Remove(a);
 
         spawnedEntities.Add(enemy);
     }
@@ -195,6 +195,14 @@ public class LevelController : MonoSingleton<LevelController>
     public void AddSpawnedEntity(Entity entity)
     {
         spawnedEntities.Add(entity);
+    }
+
+    public void RemoveDeadEntity(Entity entity)
+    {
+        if(spawnedEntities.Contains(entity))
+        {
+            spawnedEntities.Remove(entity);
+        }
     }
 
     public void RewardPlayer(int points)

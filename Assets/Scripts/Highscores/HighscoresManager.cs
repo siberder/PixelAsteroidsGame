@@ -6,7 +6,7 @@ using UnityEngine.SocialPlatforms.Impl;
 
 public class HighscoresManager : MonoSingleton<HighscoresManager>
 {
-    public string baseUrl = "http://127.0.0.1:8000/";
+    string BaseUrl => LevelController.Instance.serverBaseUrl;
 
     public string PlayerName
     {
@@ -61,7 +61,7 @@ public class HighscoresManager : MonoSingleton<HighscoresManager>
 
     IEnumerator GetScores_Routine(System.Action<ScoreEntries> onDone = null)
     {
-        var url = baseUrl + "highscores";
+        var url = BaseUrl + "highscores";
         using (var request = UnityWebRequest.Get(url))
         {
             yield return request.SendWebRequest();
@@ -79,7 +79,7 @@ public class HighscoresManager : MonoSingleton<HighscoresManager>
 
     IEnumerator AddScore_Routine(ScoreEntry scoreEntry, System.Action<ScoreEntries> onDone = null)
     {
-        var url = baseUrl + "add_score";
+        var url = BaseUrl + "add_score";
         var data = JsonUtility.ToJson(scoreEntry);
         using (var request = new UnityWebRequest(url, "POST"))
         {

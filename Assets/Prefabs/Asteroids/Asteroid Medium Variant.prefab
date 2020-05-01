@@ -78,6 +78,11 @@ PrefabInstance:
       propertyPath: maxMoveSpeed
       value: 150
       objectReference: {fileID: 0}
+    - target: {fileID: 5246896621127708914, guid: fbed48d6584d6c54aa38f828a1753ecc,
+        type: 3}
+      propertyPath: smallerAsteroidsCount
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 5246896621127708925, guid: fbed48d6584d6c54aa38f828a1753ecc,
         type: 3}
       propertyPath: m_Radius

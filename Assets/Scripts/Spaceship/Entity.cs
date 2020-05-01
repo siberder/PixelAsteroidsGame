@@ -75,6 +75,7 @@ public abstract class Entity : MonoBehaviour
             CreateDestroyEffect();
             OnDestroy?.Invoke(this);
             DestroyEntityImplementation();
+            LevelController.Instance.RemoveDeadEntity(this);
         }
     }
 

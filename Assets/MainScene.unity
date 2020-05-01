@@ -212,14 +212,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e0fd917d1165174fa8e78ff951ffdaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serverBaseUrl: http://78.24.223.186:8000/
   maxPlayerLives: 3
-  enemySpawnCooldown: 1
   playerInvincibilityTime: 3
-  playerRespawnDelay: 2
+  playerRespawnDelay: 1
   playerDeathReward: 100
-  offscreenOffset: 1
+  enemySpawnCooldown: 0.5
   asteroidRandomDistanceFromTarget: 5
-  enemySpaceshipSpawnChance: 0.05
+  enemySpaceshipSpawnChance: 0.1
+  offscreenOffset: 1
   asteroidPrefabs:
   - {fileID: 5246896621127708914, guid: fbed48d6584d6c54aa38f828a1753ecc, type: 3}
   - {fileID: 5565843372185272417, guid: 26c9235d21197ea48a66bfa35c6aa792, type: 3}
@@ -5673,7 +5674,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 923f2f3f04b3b804a9ad614032fa2634, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseUrl: http://127.0.0.1:8000/
 --- !u!1 &1999745513
 GameObject:
   m_ObjectHideFlags: 0
@@ -6528,11 +6528,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SpaceShip
-      objectReference: {fileID: 0}
-    - target: {fileID: 4698803125256669642, guid: 262cf6dedd9d97d49aa35b1091f29517,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 262cf6dedd9d97d49aa35b1091f29517, type: 3}
