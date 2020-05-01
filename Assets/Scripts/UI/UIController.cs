@@ -20,11 +20,11 @@ public class UIController : MonoSingleton<UIController>
 
     [Header("Higscores")]
     public ScrollRect scoresScroll;
-    public HighscoreEntry highscoreEntryPrefab;
+    public HighscoreUIEntry highscoreEntryPrefab;
     public TMP_Text highscoresLoadingText;
     public string loadingStr = "Loading...";
     public string errorStr = "failed loading :(";
-    List<HighscoreEntry> spawnedHighscoreEntries = new List<HighscoreEntry>();
+    List<HighscoreUIEntry> spawnedHighscoreEntries = new List<HighscoreUIEntry>();
 
     [Header("Screens")]
     public List<Animator> screens = new List<Animator>();

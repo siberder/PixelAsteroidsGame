@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class HighscoreEntry : MonoBehaviour
+public class HighscoreUIEntry : MonoBehaviour
 {
     public TMP_Text playerNameText;
     public TMP_Text scoreText;
