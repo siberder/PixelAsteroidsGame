@@ -151,7 +151,7 @@ public class SpaceshipController : Entity
         Invincible = false;
     }
 
-    public void Respawn()
+    public void Respawn(bool makeInvincible = true)
     {
         Dead = false;
 
@@ -159,6 +159,9 @@ public class SpaceshipController : Entity
         transform.rotation = Quaternion.identity;
         EntityRigidbody.velocity = Vector3.zero;
 
-        StartCoroutine(MakeInvincible_Routine());
+        if (makeInvincible)
+        {
+            StartCoroutine(MakeInvincible_Routine());
+        }
     }
 }

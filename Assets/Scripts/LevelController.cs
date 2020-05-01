@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using UnityEditor.Timeline;
@@ -16,6 +15,7 @@ public class LevelController : MonoSingleton<LevelController>
     public float playerRespawnDelay = 2f;
     public int playerDeathReward = 100;
     public float offscreenOffset = 1f;
+    public float asteroidRandomDistanceFromPlayer = 2f;
 
     [Header("Prefabs")]
     public List<Asteroid> asteroidPrefabs = new List<Asteroid>();
@@ -110,6 +110,7 @@ public class LevelController : MonoSingleton<LevelController>
             yield break;
         }
 
+        Player.Respawn(false);
         Player.AnimatingIntro = true;
 
         var curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
@@ -205,7 +206,7 @@ public class LevelController : MonoSingleton<LevelController>
         Asteroid asteroidPrefab = asteroidPrefabs[UnityEngine.Random.Range(0, asteroidPrefabs.Count)];
         var asteroid = Instantiate(asteroidPrefab, GetRandomOffscreenPoint(), Quaternion.identity);
         asteroid.SetRandomSkin();
-        asteroid.SetForceTowardPoint(Player.transform.position);
+        asteroid.SetForceTowardPoint(Player.transform.position + Random.insideUnitSphere * asteroidRandomDistanceFromPlayer);
         asteroid.OnDestroy += (a) => spawnedEntities.Remove(a);
 
         spawnedEntities.Add(asteroid);
