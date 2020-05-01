@@ -14,29 +14,31 @@ public class HighscoresManager : MonoSingleton<HighscoresManager>
         set => PlayerPrefs.SetString("PlayerName", value);
     }
 
+    public string PlayerMessage
+    {
+        get => PlayerPrefs.GetString("PlayerMessage", "I am the best");
+        set => PlayerPrefs.SetString("PlayerMessage", value);
+    }
+
     public int Highscore
     {
         get => PlayerPrefs.GetInt("Highscore", 0);
         set => PlayerPrefs.SetInt("Highscore", value);
     }
 
-    public bool NewScore(int score)
+    public bool AddNewScore(int score)
     {
         if(score > Highscore)
         {
             Highscore = score;
-            AddHigscore(score);
+            UploadScore(new ScoreEntry(PlayerName, PlayerMessage, Highscore));
             return true;
         }
         else
         {
+            LoadHighscores();
             return false;
         }
-    }
-
-    void AddHigscore(int score)
-    {
-
     }
 
     [NaughtyAttributes.Button]
@@ -51,6 +53,12 @@ public class HighscoresManager : MonoSingleton<HighscoresManager>
         UIController.Instance.SetHighscores(scoreEntries);
     }
 
+    void UploadScore(ScoreEntry scoreEntry)
+    {
+        UIController.Instance.LoadingHighscores = true;
+        StartCoroutine(AddScore_Routine(scoreEntry, OnHighscoresLoaded));
+    }
+
     IEnumerator GetScores_Routine(System.Action<ScoreEntries> onDone = null)
     {
         var url = baseUrl + "highscores";
@@ -59,6 +67,30 @@ public class HighscoresManager : MonoSingleton<HighscoresManager>
             yield return request.SendWebRequest();
 
             if(request.IsSuccess())
+            {
+                onDone?.Invoke(ProcessResponse<ScoreEntries>(request.downloadHandler.text));
+            }
+            else
+            {
+                onDone?.Invoke(null);
+            }
+        }
+    }
+
+    IEnumerator AddScore_Routine(ScoreEntry scoreEntry, System.Action<ScoreEntries> onDone = null)
+    {
+        var url = baseUrl + "add_score";
+        var data = JsonUtility.ToJson(scoreEntry);
+        using (var request = new UnityWebRequest(url, "POST"))
+        {
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(data);
+            request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            if (request.IsSuccess())
             {
                 onDone?.Invoke(ProcessResponse<ScoreEntries>(request.downloadHandler.text));
             }
@@ -83,18 +115,4 @@ public class HighscoresManager : MonoSingleton<HighscoresManager>
             return default(T);
         }
     }
-}
-
-[System.Serializable]
-public class ScoreEntries
-{
-    public List<ScoreEntry> entries;
-}
-
-[System.Serializable]
-public class ScoreEntry
-{
-    public string player;
-    public string message;
-    public int score;
 }

@@ -18,21 +18,16 @@ public class LevelController : MonoSingleton<LevelController>
     public float asteroidRandomDistanceFromPlayer = 2f;
 
     [Header("Prefabs")]
-    public List<Asteroid> asteroidPrefabs = new List<Asteroid>();
+    public List<Asteroid> asteroidPrefabs = new List<Asteroid>();    
 
-    [Header("References")]
-    public Transform introPosition;
-    public Transform startPosition;
-
-
+    bool gameOver = true;
     float enemySpawnCooldownLeft;
+
     public Vector3 TopRightBoundCorner { get; private set; }
     public Vector3 BotLeftBoundCorner { get; private set; }
-    public bool SkipIntro { get; set; }
 
     public Camera MainCam { get; private set; }
 
-    bool gameOver = true;
 
     public SpaceshipController Player { get; private set; }
 
@@ -72,7 +67,7 @@ public class LevelController : MonoSingleton<LevelController>
 
     private void Start()
     {
-        StartCoroutine(AnimateSpaceShip_Intro());
+        ShowMenuIntro();
     }
 
     public void Update()
@@ -93,55 +88,10 @@ public class LevelController : MonoSingleton<LevelController>
 
     public void ShowMenuIntro()
     {
-        StartCoroutine(AnimateSpaceShip_Intro());
+        IntroAnimator.Instance.ShowIntro();
     }
 
-    IEnumerator AnimateSpaceShip_Intro()
-    {
-        UIController.Instance.ShowMenuScreen();
-        SkipIntro = false;
-
-        float time = 0f;
-        yield return new WaitUntil(() => (time += Time.deltaTime) >= 3f || SkipIntro);
-
-        if(SkipIntro)
-        {
-            StartNewGame();
-            yield break;
-        }
-
-        Player.Respawn(false);
-        Player.AnimatingIntro = true;
-
-        var curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-        var startPos = GetOffscreenPoint(new Vector2(0, -1f));
-        var animTime = 2f;
-        for (float _animTime = 0; _animTime < animTime; _animTime += Time.deltaTime)
-        {
-            float t = _animTime / animTime;
-            Player.transform.position = Vector3.Lerp(startPos, introPosition.position, curve.Evaluate(t));
-            yield return null;
-        }
-
-        yield return new WaitUntil(() => SkipIntro);
-
-        ResetGame();
-        UIController.Instance.ShowGameUI();
-
-        startPos = Player.transform.position;
-        animTime = 0.5f;
-        for (float _animTime = 0; _animTime < animTime; _animTime += Time.deltaTime)
-        {
-            float t = _animTime / animTime;
-            Player.transform.position = Vector3.Lerp(startPos, startPosition.position, curve.Evaluate(t));
-            yield return null;
-        }
-
-        Player.AnimatingIntro = false;
-        StartNewGame();
-    }    
-
-    void ResetGame()
+    public void ResetGame()
     {
         Score = 0;
         Lives = maxPlayerLives;
@@ -150,13 +100,14 @@ public class LevelController : MonoSingleton<LevelController>
     [NaughtyAttributes.Button]
     public void StartNewGame()
     {
-        print("Starting new game");
+        Debug.Log("Starting new game");
         ResetGame();
         DestroyEntities();
         ResetEnemySpawnCooldown();
         Player.Respawn();        
         gameOver = false;
         UIController.Instance.ShowGameUI();
+        IntroAnimator.Instance.ShowingIntro = false;
     }
 
     public void SetGameOver()
@@ -271,6 +222,19 @@ public class LevelController : MonoSingleton<LevelController>
     public void DestroyPlayer()
     {
         Player.DestroyEntity();
+    }
+
+    [NaughtyAttributes.Button]
+    public void EndGame()
+    {
+        Lives = 0;
+        Player.DestroyEntity();
+    }
+
+    [NaughtyAttributes.Button]
+    public void IncrementScoreBy100()
+    {
+        RewardPlayer(100);
     }
 
     #endregion

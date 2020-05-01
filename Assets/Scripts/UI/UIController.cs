@@ -13,6 +13,11 @@ public class UIController : MonoSingleton<UIController>
     public RectTransform livesImagesRoot;
     public Image liveImagePrefab;
 
+    [Header("Game Over")]
+    public TMP_Text gameOverScoreText;
+    public TMP_InputField playerNameText;
+    public TMP_InputField playerMessage;
+
     [Header("Higscores")]
     public ScrollRect scoresScroll;
     public HighscoreEntry highscoreEntryPrefab;
@@ -75,14 +80,21 @@ public class UIController : MonoSingleton<UIController>
 
     public Animator GetScreenByName(string screenName) => screensCache[screenName];    
 
-    public void ShowScreen(string screenName) => ShowScreen(GetScreenByName(screenName));
+    public Animator ShowScreen(string screenName) => ShowScreen(GetScreenByName(screenName));
 
-    public void ShowScreen(Animator screen)
+    public Animator ShowScreen(Animator screen)
     {
+        Animator screenAnimator = null;
         foreach (var s in screens)
         {
             SetScreenVisible(s, screen == s);
+            if(screen == s)
+            {
+                screenAnimator = s;
+            }
         }
+
+        return screenAnimator;
     }
 
     public void ShowMenuScreen() => ShowScreen("Menu");
@@ -90,10 +102,18 @@ public class UIController : MonoSingleton<UIController>
     public void ShowHighscores()
     {
         ShowScreen("Highscores");
-        HighscoresManager.Instance.LoadHighscores();
     }
 
-    public void ShowGameOverScreen() => ShowScreen("GameOver");
+    public void ShowGameOverScreen()
+    {
+        var screen = ShowScreen("GameOver");
+        var score = LevelController.Instance.Score;
+        screen.SetBool("NewHighscore", score > HighscoresManager.Instance.Highscore);
+
+        gameOverScoreText.text = score.ToString();
+        playerNameText.text = HighscoresManager.Instance.PlayerName;
+        playerMessage.text = HighscoresManager.Instance.PlayerMessage;
+    }
 
     void SetScreenVisible(Animator animator, bool visible)
     {
@@ -103,7 +123,7 @@ public class UIController : MonoSingleton<UIController>
     internal void SetHighscores(ScoreEntries scoreEntries)
     {
         LoadingHighscores = false;
-        if (scoreEntries.entries != null)
+        if (scoreEntries != null && scoreEntries.entries != null)
         {
             foreach (var scoreEntry in spawnedHighscoreEntries)
             {
@@ -127,11 +147,14 @@ public class UIController : MonoSingleton<UIController>
 
     public void UI_StartButton()
     {
-        LevelController.Instance.SkipIntro = true;
+        IntroAnimator.Instance.SkipIntro = true;
     }
 
     public void UI_GameOver_OK()
     {
+        HighscoresManager.Instance.PlayerName = playerNameText.text;
+        HighscoresManager.Instance.PlayerMessage = playerMessage.text;
+        HighscoresManager.Instance.AddNewScore(LevelController.Instance.Score);
         ShowHighscores();
     }
 
@@ -142,6 +165,7 @@ public class UIController : MonoSingleton<UIController>
 
     public void UI_Menu_Highscores()
     {
+        HighscoresManager.Instance.LoadHighscores();
         ShowHighscores();
     }
 }

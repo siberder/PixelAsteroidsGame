@@ -605,3 +605,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerNameText: {fileID: 368978835228214295}
   scoreText: {fileID: 368978834595814926}
+  messageText: {fileID: 224731112}

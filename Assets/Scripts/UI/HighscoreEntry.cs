@@ -13,6 +13,6 @@ public class HighscoreEntry : MonoBehaviour
     {
         playerNameText.text = scoreEntry.player;
         scoreText.text = scoreEntry.score.ToString();
-        messageText.text = $"\"{scoreEntry.message}\"";
+        messageText.text = (!string.IsNullOrEmpty(scoreEntry.message)) ? $"\"{scoreEntry.message}\"" : string.Empty;
     }
 }
