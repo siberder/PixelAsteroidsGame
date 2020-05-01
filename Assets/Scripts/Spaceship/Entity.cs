@@ -17,7 +17,10 @@ public abstract class Entity : MonoBehaviour
     public delegate void DestroyEntityDelegate(Entity source);
     public event DestroyEntityDelegate OnDestroy;
 
-    protected virtual bool Dead { get; set; }
+    public Entity SourceUser { get; set; }
+    public bool SourceUserIsPlayer => SourceUser is SpaceshipController;
+
+    public virtual bool Dead { get; set; }
 
     protected virtual void Awake()
     {
@@ -64,7 +67,7 @@ public abstract class Entity : MonoBehaviour
         return null;
     }
 
-    public virtual void DestroyEntity()
+    public virtual void DestroyEntity(bool playerIsSource = false)
     {
         if(!Dead)
         {

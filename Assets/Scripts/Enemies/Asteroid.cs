@@ -48,6 +48,8 @@ public class Asteroid : EnemyBase
                 asteroid.SetSkin(skinIdx);
                 asteroid.EntityRigidbody.AddForce(EntityRigidbody.velocity, ForceMode2D.Impulse);
                 asteroid.EntityRigidbody.AddForce(asteroid.transform.position - transform.position, ForceMode2D.Impulse);
+
+                LevelController.Instance.AddSpawnedEntity(asteroid);
             }
         }
 

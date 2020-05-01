@@ -4,28 +4,19 @@ using UnityEngine;
 
 public abstract class EnemyBase : Entity
 {
-    public int maxHealth = 1;
     public int scoreReward = 10;
-
-    int health;
 
     protected override void Awake()
     {
         base.Awake();
-        health = maxHealth;
     }
 
-    public virtual void ApplyDamage(int amount, bool playerIsSource)
+    public override void DestroyEntity(bool playerIsSource = false)
     {
-        health -= amount;
-        if(health <= 0)
+        base.DestroyEntity();
+        if (playerIsSource)
         {
-            DestroyEntity();
-
-            if(playerIsSource)
-            {
-                LevelController.Instance.RewardPlayer(scoreReward);
-            }
+            LevelController.Instance.RewardPlayer(scoreReward);
         }
     }
 }

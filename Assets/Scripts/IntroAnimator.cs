@@ -61,7 +61,7 @@ public class IntroAnimator : MonoSingleton<IntroAnimator>
         LevelController.Instance.Player.AnimatingIntro = true;
         LevelController.Instance.Player.Respawn(false);
 
-        yield return AnimatePlayer(LevelController.Instance.GetOffscreenPoint(new Vector2(0, -1f)), introPosition.position, 2f);
+        yield return AnimatePlayer(LevelController.Instance.GetOffsetScreenPoint(new Vector2(0, -1f)), introPosition.position, 2f);
         yield return new WaitUntil(() => SkipIntro);
 
         LevelController.Instance.ResetGame();

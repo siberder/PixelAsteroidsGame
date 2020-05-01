@@ -5,12 +5,11 @@ using UnityEngine;
 public class Projectile : Entity
 {
     [Header("Settings")]
-    public int damage = 1;
     public float moveSpeed = 10f;
     public float lifetime = 3f;
 
     public float StartSpeed { get; private set; }
-    protected override bool Dead
+    public override bool Dead
     {
         get => base.Dead; 
         set
@@ -22,7 +21,6 @@ public class Projectile : Entity
 
     Vector2 NextPoint => transform.position + (transform.up * (moveSpeed + StartSpeed) * Time.fixedDeltaTime);
 
-    Entity sourceUser;
 
     private void Start()
     {
@@ -52,7 +50,7 @@ public class Projectile : Entity
 
     public void Init(Entity source, float startSpeed)
     {
-        sourceUser = source;
+        SourceUser = source;
         StartSpeed = startSpeed;
     }
 
@@ -64,23 +62,11 @@ public class Projectile : Entity
         }
     }
 
-    /*
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (!Dead)
-        {
-            OnHit(collision.gameObject, collision.contacts[0].point);
-        }
-    }*/
-
     void OnHit(GameObject gameObject, Vector2 point)
     {
         Entity entity = gameObject.GetComponent<Entity>();
-        if (entity is EnemyBase enemy)
-        {
-            enemy.ApplyDamage(damage, sourceUser is SpaceshipController);
-        }
 
+        entity.DestroyEntity(SourceUserIsPlayer);
         DestroyEntity();
     }
 }

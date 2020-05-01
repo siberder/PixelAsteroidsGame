@@ -19,25 +19,24 @@ public class SpaceshipController : Entity
 
     float weaponCooldownLeft;
     bool invincible;
-    bool dead;
+    bool animatingIntro;
 
     bool inputFire;
     float inputVertical;
     float inputHorizontal;
 
-    protected override bool Dead
+    public override bool Dead
     {
-        get => dead;
+        get => base.Dead;
 
         set
         {
-            dead = value;
-            visuals.SetActive(!dead);
+            base.Dead = value;
+            visuals.SetActive(!base.Dead);
             UpdateEntityColliderActivity();
         }
     }
 
-    public bool AnimatingIntro { get; set; }
 
     private bool Anim_Invincible
     { 
@@ -62,6 +61,16 @@ public class SpaceshipController : Entity
         }
     }
 
+    public bool AnimatingIntro
+    {
+        get => animatingIntro; 
+        set
+        {
+            animatingIntro = value;
+            UpdateEntityColliderActivity();
+        }
+    }
+
     protected override void Awake()
     {
         base.Awake();
@@ -82,7 +91,7 @@ public class SpaceshipController : Entity
 
     private void FixedUpdate()
     {
-        if(!Dead)
+        if(!Dead && !AnimatingIntro)
         {
             HandleMoving();
             HandleFiring();
@@ -125,7 +134,7 @@ public class SpaceshipController : Entity
 
     void UpdateEntityColliderActivity()
     {
-        EntityCollider.enabled = !dead && !invincible;
+        EntityCollider.enabled = !Dead && !invincible && !AnimatingIntro;
     }
 
     protected override void DestroyEntityImplementation()
@@ -163,5 +172,5 @@ public class SpaceshipController : Entity
         {
             StartCoroutine(MakeInvincible_Routine());
         }
-    }
+    }    
 }

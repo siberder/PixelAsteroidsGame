@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using NaughtyAttributes;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using UnityEditor.Timeline;
@@ -6,23 +8,25 @@ using UnityEngine;
 
 public class LevelController : MonoSingleton<LevelController>
 {
-    public static LayerMask PlayerLayerMask { get => LayerMask.GetMask("Player", "PlayerProjectile"); }
+    [BoxGroup("Player Settings")] public int maxPlayerLives = 3;
+    [BoxGroup("Player Settings")] public float playerInvincibilityTime = 3f;
+    [BoxGroup("Player Settings")] public float playerRespawnDelay = 2f;
+    [BoxGroup("Player Settings")] public int playerDeathReward = 100;
 
-    [Header("Settings")]
-    public int maxPlayerLives = 3;
-    public float enemySpawnCooldown = 2f;
-    public float playerInvincibilityTime = 3f;
-    public float playerRespawnDelay = 2f;
-    public int playerDeathReward = 100;
-    public float offscreenOffset = 1f;
-    public float asteroidRandomDistanceFromPlayer = 2f;
+    [BoxGroup("Enemies Settings")] public float enemySpawnCooldown = 2f;
+    [BoxGroup("Enemies Settings")] public float asteroidRandomDistanceFromTarget = 2f;
+    [BoxGroup("Enemies Settings")] public float enemySpaceshipSpawnChance = 0.05f;
 
-    [Header("Prefabs")]
-    public List<Asteroid> asteroidPrefabs = new List<Asteroid>();    
+    [BoxGroup("Other Settings")] public float offscreenOffset = 1f;
+
+    [Header("Prefabs")] 
+    public List<Asteroid> asteroidPrefabs = new List<Asteroid>();
+    public List<EnemySpaceship> enemySpaceships = new List<EnemySpaceship>();
 
     bool gameOver = true;
     float enemySpawnCooldownLeft;
 
+    public Bounds PlayAreaBounds { get; private set; }
     public Vector3 TopRightBoundCorner { get; private set; }
     public Vector3 BotLeftBoundCorner { get; private set; }
 
@@ -60,10 +64,11 @@ public class LevelController : MonoSingleton<LevelController>
         MainCam = Camera.main;
         Player = FindObjectOfType<SpaceshipController>();
 
-        var playAreaRect = MainCam.OrthographicBounds();
-        TopRightBoundCorner = playAreaRect.center + playAreaRect.extents;
-        BotLeftBoundCorner = playAreaRect.center - playAreaRect.extents;
+        PlayAreaBounds = MainCam.OrthographicBounds();
+        TopRightBoundCorner = PlayAreaBounds.center + PlayAreaBounds.extents;
+        BotLeftBoundCorner = PlayAreaBounds.center - PlayAreaBounds.extents;
     }
+    
 
     private void Start()
     {
@@ -76,7 +81,15 @@ public class LevelController : MonoSingleton<LevelController>
         {
             if (enemySpawnCooldownLeft <= 0)
             {
-                SpawnAsteroid();
+                if (UnityEngine.Random.value > enemySpaceshipSpawnChance)
+                {
+                    SpawnAsteroid();
+                }
+                else
+                {
+                    SpawnEnemy();
+                }
+
                 ResetEnemySpawnCooldown();
             }
             else
@@ -112,9 +125,11 @@ public class LevelController : MonoSingleton<LevelController>
 
     public void SetGameOver()
     {
-        print("Gamover");
+        Debug.Log("Game Over");
         gameOver = true;
         UIController.Instance.ShowGameOverScreen();
+
+        Invoke(nameof(DestroyEntities), 0.5f);
     }
 
     void ResetEnemySpawnCooldown()
@@ -124,12 +139,15 @@ public class LevelController : MonoSingleton<LevelController>
 
     void DestroyEntities()
     {
-        foreach (var entity in spawnedEntities)
+        while(spawnedEntities.Count > 0)
         {
-            Destroy(entity.gameObject);
-        }
+            if (spawnedEntities[0])
+            {
+                Destroy(spawnedEntities[0].gameObject);
+            }
 
-        spawnedEntities.Clear();
+            spawnedEntities.RemoveAt(0);
+        }
     }
 
     internal void OnPlayerDied()
@@ -152,15 +170,31 @@ public class LevelController : MonoSingleton<LevelController>
         Player.Respawn();
     }
 
+    [NaughtyAttributes.Button]
     void SpawnAsteroid()
     {
         Asteroid asteroidPrefab = asteroidPrefabs[UnityEngine.Random.Range(0, asteroidPrefabs.Count)];
         var asteroid = Instantiate(asteroidPrefab, GetRandomOffscreenPoint(), Quaternion.identity);
         asteroid.SetRandomSkin();
-        asteroid.SetForceTowardPoint(Player.transform.position + Random.insideUnitSphere * asteroidRandomDistanceFromPlayer);
+        asteroid.SetForceTowardPoint(UnityEngine.Random.insideUnitSphere * asteroidRandomDistanceFromTarget);
         asteroid.OnDestroy += (a) => spawnedEntities.Remove(a);
 
         spawnedEntities.Add(asteroid);
+    }
+
+    [NaughtyAttributes.Button]
+    void SpawnEnemy()
+    {
+        var enemy = Instantiate(enemySpaceships[UnityEngine.Random.Range(0, enemySpaceships.Count)], GetRandomOffscreenPoint(), Quaternion.identity);
+        enemy.Init();
+        enemy.OnDestroy += (a) => spawnedEntities.Remove(a);
+
+        spawnedEntities.Add(enemy);
+    }
+
+    public void AddSpawnedEntity(Entity entity)
+    {
+        spawnedEntities.Add(entity);
     }
 
     public void RewardPlayer(int points)
@@ -204,7 +238,7 @@ public class LevelController : MonoSingleton<LevelController>
         return rndPos;
     }
 
-    public Vector2 GetOffscreenPoint(Vector2 normalizedPosition)
+    public Vector2 GetOffsetScreenPoint(Vector2 normalizedPosition)
     {
         var nrm = (normalizedPosition + Vector2.one) * 0.5f;
         return new Vector2
@@ -212,6 +246,24 @@ public class LevelController : MonoSingleton<LevelController>
             x = Mathf.Lerp(BotLeftBoundCorner.x - offscreenOffset, TopRightBoundCorner.x + offscreenOffset, nrm.x),
             y = Mathf.Lerp(BotLeftBoundCorner.y - offscreenOffset, TopRightBoundCorner.y + offscreenOffset, nrm.y),
         };
+    }
+
+    public Vector2 GetRandomPointInPlayArea()
+    {
+        var rnd = (UnityEngine.Random.insideUnitCircle + Vector2.one) * 0.5f;
+        return new Vector2
+        {
+            x = Mathf.Lerp(BotLeftBoundCorner.x, TopRightBoundCorner.x, rnd.x),
+            y = Mathf.Lerp(BotLeftBoundCorner.y, TopRightBoundCorner.y, rnd.y),
+        };
+    }
+
+    public bool IsPointInPlayArea(Vector3 position)
+    {
+        return position.x < TopRightBoundCorner.x 
+            && position.x > BotLeftBoundCorner.x
+            && position.y < TopRightBoundCorner.y
+            && position.y > BotLeftBoundCorner.y;
     }
 
     #endregion
