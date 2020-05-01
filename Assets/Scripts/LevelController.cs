@@ -263,4 +263,14 @@ public class LevelController : MonoSingleton<LevelController>
     }
 
     #endregion
+
+    #region Editor Help Buttons
+
+    [NaughtyAttributes.Button]
+    public void DestroyPlayer()
+    {
+        Player.DestroyEntity();
+    }
+
+    #endregion
 }
