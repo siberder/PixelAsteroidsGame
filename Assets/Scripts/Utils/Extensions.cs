@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public static class Extensions
 {
@@ -19,5 +20,15 @@ public static class Extensions
         var color = sprite.color;
         color.a = a;
         sprite.color = color;
+    }
+
+    public static bool IsSuccess(this UnityWebRequest request)
+    {
+        if (request.isNetworkError) { return false; }
+
+        if (request.responseCode == 0) { return true; }
+        if (request.responseCode == (long)System.Net.HttpStatusCode.OK) { return true; }
+
+        return false;
     }
 }
