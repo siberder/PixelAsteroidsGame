@@ -29,11 +29,6 @@ public class EnemySpaceship : EnemyBase
         }
     }
 
-    private void Start()
-    {
-        Init();
-    }
-
     void GetNewRandomPoint()
     {
         randomPoint = LevelController.Instance.GetRandomPointInPlayArea();

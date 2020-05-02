@@ -1,9 +1,5 @@
 ﻿using NaughtyAttributes;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
-using UnityEditor.Timeline;
 using UnityEngine;
 
 public class LevelController : MonoSingleton<LevelController>
@@ -82,7 +78,7 @@ public class LevelController : MonoSingleton<LevelController>
         {
             if (enemySpawnCooldownLeft <= 0)
             {
-                if (UnityEngine.Random.value > enemySpaceshipSpawnChance)
+                if (Random.value > enemySpaceshipSpawnChance)
                 {
                     SpawnAsteroid();
                 }
@@ -96,6 +92,11 @@ public class LevelController : MonoSingleton<LevelController>
             else
             {
                 enemySpawnCooldownLeft -= Time.deltaTime;
+            }
+
+            if (Input.GetKeyUp(KeyCode.R))
+            {
+                StartNewGame();
             }
         }
     }

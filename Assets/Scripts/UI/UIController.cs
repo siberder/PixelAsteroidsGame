@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,8 +29,6 @@ public class UIController : MonoSingleton<UIController>
     Dictionary<string, Animator> screensCache = new Dictionary<string, Animator>();
 
     List<Image> livesImages = new List<Image>();
-
-    bool firstLaunch = true;
 
     public bool LoadingHighscores
     {
@@ -122,7 +117,6 @@ public class UIController : MonoSingleton<UIController>
 
     internal void SetHighscores(ScoreEntries scoreEntries)
     {
-        LoadingHighscores = false;
         if (scoreEntries != null && scoreEntries.entries != null)
         {
             foreach (var scoreEntry in spawnedHighscoreEntries)
@@ -138,6 +132,8 @@ public class UIController : MonoSingleton<UIController>
                 scoreEntry.Init(entry);
                 spawnedHighscoreEntries.Add(scoreEntry);
             }
+
+            LoadingHighscores = false;
         }
         else
         {
@@ -167,5 +163,10 @@ public class UIController : MonoSingleton<UIController>
     {
         HighscoresManager.Instance.LoadHighscores();
         ShowHighscores();
+    }
+
+    public void UI_RestartGame()
+    {
+        LevelController.Instance.StartNewGame();
     }
 }

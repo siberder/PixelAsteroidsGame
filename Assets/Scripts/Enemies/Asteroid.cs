@@ -15,8 +15,6 @@ public class Asteroid : EnemyBase
 
     private void Start()
     {
-        //float force = Random.Range(minMoveSpeed, maxMoveSpeed);
-        //entityRigidbody.AddForce(Random.insideUnitSphere.normalized * force);
         EntityRigidbody.AddTorque(Random.Range(90f, 360f) * Time.fixedDeltaTime);
     }
 
