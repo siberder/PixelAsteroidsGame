@@ -6,7 +6,7 @@ using UnityEngine.SocialPlatforms.Impl;
 
 public class HighscoresManager : MonoSingleton<HighscoresManager>
 {
-    string BaseUrl => LevelController.Instance.serverBaseUrl;
+    string BaseUrl => GameManager.Instance.serverBaseUrl;
 
     public string PlayerName
     {

@@ -113,7 +113,7 @@ public class UIController : MonoSingleton<UIController>
         Cursor.SetCursor(defaultCursor, Vector2.zero, CursorMode.ForceSoftware);
 
         var screen = ShowScreen("GameOver");
-        var score = LevelController.Instance.Score;
+        var score = GameManager.Instance.Score;
         screen.SetBool("NewHighscore", score > HighscoresManager.Instance.Highscore);
 
         gameOverScoreText.text = score.ToString();
@@ -161,13 +161,13 @@ public class UIController : MonoSingleton<UIController>
     {
         HighscoresManager.Instance.PlayerName = playerNameText.text;
         HighscoresManager.Instance.PlayerMessage = playerMessage.text;
-        HighscoresManager.Instance.AddNewScore(LevelController.Instance.Score);
+        HighscoresManager.Instance.AddNewScore(GameManager.Instance.Score);
         ShowHighscores();
     }
 
     public void UI_HighScores_NewGame()
     {
-        LevelController.Instance.ShowMenuIntro();
+        GameManager.Instance.ShowMenuIntro();
     }
 
     public void UI_Menu_Highscores()
@@ -178,6 +178,6 @@ public class UIController : MonoSingleton<UIController>
 
     public void UI_RestartGame()
     {
-        LevelController.Instance.StartNewGame();
+        GameManager.Instance.StartNewGame();
     }
 }

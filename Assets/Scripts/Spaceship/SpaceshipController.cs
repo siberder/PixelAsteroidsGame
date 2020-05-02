@@ -135,7 +135,7 @@ public class SpaceshipController : Entity
     {
         if (inputFire)
         {
-            var target = LevelController.Instance.MainCam.ScreenToWorldPoint(Input.mousePosition);
+            var target = GameManager.Instance.MainCam.ScreenToWorldPoint(Input.mousePosition);
             TurnTo(target);
         }
     }
@@ -153,7 +153,7 @@ public class SpaceshipController : Entity
 
     protected override void DestroyEntityImplementation()
     {
-        LevelController.Instance.OnPlayerDied();
+        GameManager.Instance.OnPlayerDied();
     }
 
     protected override Effect CreateDestroyEffect()
@@ -170,7 +170,7 @@ public class SpaceshipController : Entity
     IEnumerator MakeInvincible_Routine()
     {
         Invincible = true;
-        yield return new WaitForSeconds(LevelController.Instance.playerInvincibilityTime);
+        yield return new WaitForSeconds(GameManager.Instance.playerInvincibilityTime);
         Invincible = false;
     }
 

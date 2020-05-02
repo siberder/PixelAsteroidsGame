@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LevelController : MonoSingleton<LevelController>
+public class GameManager : MonoSingleton<GameManager>
 {
     [BoxGroup("Highscores Settings")] public string serverBaseUrl = "http://127.0.0.1:8000/";
 

@@ -16,7 +16,7 @@ public abstract class EnemyBase : Entity
         base.DestroyEntity();
         if (playerIsSource)
         {
-            LevelController.Instance.RewardPlayer(scoreReward);
+            GameManager.Instance.RewardPlayer(scoreReward);
         }
     }
 }

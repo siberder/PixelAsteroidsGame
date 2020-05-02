@@ -31,7 +31,7 @@ public class EnemySpaceship : EnemyBase
 
     void GetNewRandomPoint()
     {
-        randomPoint = LevelController.Instance.GetRandomPointInPlayArea();
+        randomPoint = GameManager.Instance.GetRandomPointInPlayArea();
     }
 
     public void Init()
@@ -41,8 +41,8 @@ public class EnemySpaceship : EnemyBase
 
     private void FixedUpdate()
     {
-        var player = LevelController.Instance.Player;
-        bool isInPlayArea = LevelController.Instance.IsPointInPlayArea(transform.position);
+        var player = GameManager.Instance.Player;
+        bool isInPlayArea = GameManager.Instance.IsPointInPlayArea(transform.position);
 
         if(!Dead)
         {

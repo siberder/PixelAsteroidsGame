@@ -29,7 +29,7 @@ public class IntroAnimator : MonoSingleton<IntroAnimator>
             }
 
             float t = _animTime / time;
-            LevelController.Instance.Player.transform.position = 
+            GameManager.Instance.Player.transform.position = 
                 Vector3.Lerp(from, to, shipMovingAnimationCurve.Evaluate(t));
             yield return null;
         }
@@ -54,22 +54,22 @@ public class IntroAnimator : MonoSingleton<IntroAnimator>
 
         if (SkipIntro)
         {
-            LevelController.Instance.StartNewGame();
+            GameManager.Instance.StartNewGame();
             yield break;
         }
 
-        LevelController.Instance.Player.AnimatingIntro = true;
-        LevelController.Instance.Player.Respawn(false);
+        GameManager.Instance.Player.AnimatingIntro = true;
+        GameManager.Instance.Player.Respawn(false);
 
-        yield return AnimatePlayer(LevelController.Instance.GetOffsetScreenPoint(new Vector2(0, -1f)), introPosition.position, 2f);
+        yield return AnimatePlayer(GameManager.Instance.GetOffsetScreenPoint(new Vector2(0, -1f)), introPosition.position, 2f);
         yield return new WaitUntil(() => SkipIntro);
 
-        LevelController.Instance.ResetGame();
+        GameManager.Instance.ResetGame();
         UIController.Instance.ShowGameUI();
 
-        yield return AnimatePlayer(LevelController.Instance.Player.transform.position, startPosition.position, 0.5f, skippable: false);
+        yield return AnimatePlayer(GameManager.Instance.Player.transform.position, startPosition.position, 0.5f, skippable: false);
 
-        LevelController.Instance.Player.AnimatingIntro = false;
-        LevelController.Instance.StartNewGame();
+        GameManager.Instance.Player.AnimatingIntro = false;
+        GameManager.Instance.StartNewGame();
     }
 }

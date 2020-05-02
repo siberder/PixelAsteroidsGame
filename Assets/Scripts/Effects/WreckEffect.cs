@@ -10,7 +10,7 @@ public class WreckEffect : Effect
 
     Rigidbody2D[] rigidBodies;
 
-    protected override float Lifetime => LevelController.Instance.playerRespawnDelay + additionalLifetime;
+    protected override float Lifetime => GameManager.Instance.playerRespawnDelay + additionalLifetime;
 
     private void Awake()
     {

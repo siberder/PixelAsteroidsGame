@@ -24,8 +24,8 @@ public abstract class Entity : MonoBehaviour
         EntityCollider = GetComponent<Collider2D>();
         EntityRigidbody = GetComponent<Rigidbody2D>();
 
-        topRightBoundCorner = LevelController.Instance.TopRightBoundCorner + EntityCollider.bounds.extents;
-        botLeftBoundCorner = LevelController.Instance.BotLeftBoundCorner - EntityCollider.bounds.extents;
+        topRightBoundCorner = GameManager.Instance.TopRightBoundCorner + EntityCollider.bounds.extents;
+        botLeftBoundCorner = GameManager.Instance.BotLeftBoundCorner - EntityCollider.bounds.extents;
     }
 
     protected void WrapWorldPosition()
@@ -72,7 +72,7 @@ public abstract class Entity : MonoBehaviour
             CreateDestroyEffect();
             OnDestroy?.Invoke(this);
             DestroyEntityImplementation();
-            LevelController.Instance.RemoveDeadEntity(this);
+            GameManager.Instance.RemoveDeadEntity(this);
         }
     }
 
