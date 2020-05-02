@@ -165,6 +165,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4630c6a0579b8c14e91a921252af607b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  defaultCursor: {fileID: 0}
+  aimCursor: {fileID: 2800000, guid: 646e634d84de4fa43accab06fd6f9d00, type: 3}
   scoreText: {fileID: 1543719346}
   livesImagesRoot: {fileID: 1563379548}
   liveImagePrefab: {fileID: 4064341973873797951, guid: f05ad8d4df2152745862769dc31e1419,

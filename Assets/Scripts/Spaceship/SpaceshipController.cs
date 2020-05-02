@@ -92,6 +92,7 @@ public class SpaceshipController : Entity
         if(!Dead && !AnimatingIntro)
         {
             HandleMoving();
+            HandleTurningToMouse();
             HandleFiring();
         }
     }
@@ -128,6 +129,21 @@ public class SpaceshipController : Entity
 
         EntityRigidbody.AddForce(inputVertical * transform.up * acceleration * Time.fixedDeltaTime);
         transform.Rotate(0, 0, -inputHorizontal * turnSpeed * Time.fixedDeltaTime);
+    }
+
+    void HandleTurningToMouse()
+    {
+        if (inputFire)
+        {
+            var target = LevelController.Instance.MainCam.ScreenToWorldPoint(Input.mousePosition);
+            TurnTo(target);
+        }
+    }
+
+    void TurnTo(Vector3 position)
+    {
+        var lookRotation = Quaternion.LookRotation(Vector3.forward, position - transform.position);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, lookRotation, turnSpeed * Time.fixedDeltaTime);
     }
 
     void UpdateEntityColliderActivity()

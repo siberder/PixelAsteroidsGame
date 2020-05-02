@@ -5,6 +5,10 @@ using UnityEngine.UI;
 
 public class UIController : MonoSingleton<UIController>
 {
+    [Header("Cursor")]
+    public Texture2D defaultCursor;
+    public Texture2D aimCursor;
+
     [Header("References")]
     public TMP_Text scoreText;
     public RectTransform livesImagesRoot;
@@ -93,7 +97,12 @@ public class UIController : MonoSingleton<UIController>
     }
 
     public void ShowMenuScreen() => ShowScreen("Menu");
-    public void ShowGameUI() => ShowScreen("Game");
+    public void ShowGameUI()
+    {
+        ShowScreen("Game");
+        Cursor.SetCursor(aimCursor, new Vector2(0.5f, 0.5f) * new Vector2(aimCursor.width, aimCursor.height), CursorMode.ForceSoftware);
+    }
+
     public void ShowHighscores()
     {
         ShowScreen("Highscores");
@@ -101,6 +110,8 @@ public class UIController : MonoSingleton<UIController>
 
     public void ShowGameOverScreen()
     {
+        Cursor.SetCursor(defaultCursor, Vector2.zero, CursorMode.ForceSoftware);
+
         var screen = ShowScreen("GameOver");
         var score = LevelController.Instance.Score;
         screen.SetBool("NewHighscore", score > HighscoresManager.Instance.Highscore);
