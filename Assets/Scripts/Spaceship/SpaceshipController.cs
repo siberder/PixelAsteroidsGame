@@ -20,6 +20,7 @@ public class SpaceshipController : Entity
     bool animatingIntro;
 
     bool inputFire;
+    bool inputTurn;
     float inputVertical;
     float inputHorizontal;
 
@@ -85,6 +86,8 @@ public class SpaceshipController : Entity
 
             WrapWorldPosition();
         }
+
+        UpdateThrustSpriteVisibility();
     }
 
     private void FixedUpdate()
@@ -101,7 +104,8 @@ public class SpaceshipController : Entity
     {
         inputVertical = Mathf.Clamp01(Input.GetAxis("Vertical"));
         inputHorizontal = Input.GetAxis("Horizontal");
-        inputFire = Input.GetButton("Fire1") || Input.GetButton("Fire2") || Input.GetButton("Fire3");
+        inputFire = Input.GetButton("Fire1") || Input.GetButton("Fire3");
+        inputTurn = Input.GetButton("Fire2");
     }
 
     void HandleFiring()
@@ -125,19 +129,22 @@ public class SpaceshipController : Entity
 
     void HandleMoving()
     {       
-        ThrustSpriteVisible = inputVertical > float.Epsilon || AnimatingIntro;
-
         EntityRigidbody.AddForce(inputVertical * transform.up * acceleration * Time.fixedDeltaTime);
         transform.Rotate(0, 0, -inputHorizontal * turnSpeed * Time.fixedDeltaTime);
     }
 
     void HandleTurningToMouse()
     {
-        if (inputFire)
+        if (inputFire || inputTurn)
         {
             var target = GameManager.Instance.MainCam.ScreenToWorldPoint(Input.mousePosition);
             TurnTo(target);
         }
+    }
+
+    void UpdateThrustSpriteVisibility()
+    {
+        ThrustSpriteVisible = inputVertical > float.Epsilon || AnimatingIntro;
     }
 
     void TurnTo(Vector3 position)

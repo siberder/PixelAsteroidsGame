@@ -8,6 +8,7 @@ public class EnemySpaceship : EnemyBase
     public float acceleration = 100f;
     public float turnSpeed = 90f;
     public float weaponCooldown = 0.25f;
+    public float maxProjectileTargetOffset = 0.5f;
 
     [Header("References")]
     public GameObject visuals;
@@ -76,8 +77,11 @@ public class EnemySpaceship : EnemyBase
     {
         if (weaponCooldownLeft <= 0f)
         {
+            var playerPos = (Vector2)GameManager.Instance.Player.transform.position + Random.insideUnitCircle * 0.5f;
+            var directionToPlayer = playerPos - (Vector2)projectileEmitSource.position;
+
             var projectile = Instantiate(projectilePrefab, projectileEmitSource.position,
-                                Quaternion.LookRotation(projectileEmitSource.forward, projectileEmitSource.up));
+                                Quaternion.LookRotation(Vector3.forward, directionToPlayer));
             projectile.Init(this, EntityRigidbody.velocity.magnitude);
 
             weaponCooldownLeft = weaponCooldown;
