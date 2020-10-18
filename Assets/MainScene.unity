@@ -214,7 +214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e0fd917d1165174fa8e78ff951ffdaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugMode: 1
+  debugMode: 0
   forceProdServer: 0
   testServerBaseUrl: http://127.0.0.1:8000/
   serverBaseUrl: http://78.24.223.186:8000/
