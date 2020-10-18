@@ -160,7 +160,7 @@ public class SpaceshipController : Entity
 
     protected override void DestroyEntityImplementation()
     {
-        GameManager.Instance.OnPlayerDied();
+        GameManager.Instance.SetPlayerDied();
     }
 
     protected override Effect CreateDestroyEffect()

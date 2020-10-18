@@ -1,118 +1,89 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.SocialPlatforms.Impl;
+﻿using UnityEngine;
+using Utils;
 
-public class HighscoresManager : MonoSingleton<HighscoresManager>
+namespace Highscores
 {
-    string BaseUrl => GameManager.Instance.serverBaseUrl;
-
-    public string PlayerName
+    public class HighscoresManager : MonoSingleton<HighscoresManager>
     {
-        get => PlayerPrefs.GetString("PlayerName", "Player #" + Random.Range(0, 999));
-        set => PlayerPrefs.SetString("PlayerName", value);
-    }
-
-    public string PlayerMessage
-    {
-        get => PlayerPrefs.GetString("PlayerMessage", "I am the best");
-        set => PlayerPrefs.SetString("PlayerMessage", value);
-    }
-
-    public int Highscore
-    {
-        get => PlayerPrefs.GetInt("Highscore", 0);
-        set => PlayerPrefs.SetInt("Highscore", value);
-    }
-
-    public bool AddNewScore(int score)
-    {
-        if(score > Highscore)
+        private string BaseUrl
         {
-            Highscore = score;
-            UploadScore(new ScoreEntry(PlayerName, PlayerMessage, Highscore));
-            return true;
-        }
-        else
-        {
-            LoadHighscores();
-            return false;
-        }
-    }
-
-    [NaughtyAttributes.Button]
-    public void LoadHighscores()
-    {
-        UIController.Instance.LoadingHighscores = true;
-        StartCoroutine(GetScores_Routine(OnHighscoresLoaded));
-    }
-
-    void OnHighscoresLoaded(ScoreEntries scoreEntries)
-    {
-        UIController.Instance.SetHighscores(scoreEntries);
-    }
-
-    void UploadScore(ScoreEntry scoreEntry)
-    {
-        UIController.Instance.LoadingHighscores = true;
-        StartCoroutine(AddScore_Routine(scoreEntry, OnHighscoresLoaded));
-    }
-
-    IEnumerator GetScores_Routine(System.Action<ScoreEntries> onDone = null)
-    {
-        var url = BaseUrl + "highscores";
-        using (var request = UnityWebRequest.Get(url))
-        {
-            yield return request.SendWebRequest();
-
-            if(request.IsSuccess())
+            get
             {
-                onDone?.Invoke(ProcessResponse<ScoreEntries>(request.downloadHandler.text));
+#if UNITY_EDITOR
+                if (!GameManager.Instance.forceProdServer)
+                {
+                    return GameManager.Instance.testServerBaseUrl;
+                }
+#endif
+
+                return GameManager.Instance.serverBaseUrl;
+            }
+        }
+
+        public string PlayerName
+        {
+            get => PlayerPrefs.GetString("PlayerName", "Player #" + Random.Range(0, 999));
+            set => PlayerPrefs.SetString("PlayerName", value);
+        }
+
+        public string PlayerMessage
+        {
+            get => PlayerPrefs.GetString("PlayerMessage", "I am the best");
+            set => PlayerPrefs.SetString("PlayerMessage", value);
+        }
+
+        public int Highscore
+        {
+            get => PlayerPrefs.GetInt("Highscore", 0);
+            set => PlayerPrefs.SetInt("Highscore", value);
+        }
+
+        private Coroutine _sendStartCoroutine;
+
+        private string _playGuid;
+
+        public void AddNewScore(int score)
+        {
+            if (score > Highscore)
+            {
+                Highscore = score;
+                UploadScore(new ScoreEntry(PlayerName, PlayerMessage, Highscore, _playGuid));
             }
             else
             {
-                onDone?.Invoke(null);
+                LoadHighscores();
             }
         }
-    }
 
-    IEnumerator AddScore_Routine(ScoreEntry scoreEntry, System.Action<ScoreEntries> onDone = null)
-    {
-        var url = BaseUrl + "add_score";
-        var data = JsonUtility.ToJson(scoreEntry);
-        using (var request = new UnityWebRequest(url, "POST"))
+        [NaughtyAttributes.Button]
+        public void LoadHighscores()
         {
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(data);
-            request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
-            request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");
-
-            yield return request.SendWebRequest();
-
-            if (request.IsSuccess())
-            {
-                onDone?.Invoke(ProcessResponse<ScoreEntries>(request.downloadHandler.text));
-            }
-            else
-            {
-                onDone?.Invoke(null);
-            }
+            Debug.Log($"Loading highscores..");
+            UIController.Instance.LoadingHighscores = true;
+            WebUtils.SendGetRequest<ScoreEntries>(
+                BaseUrl + "highscores?" + WebUtils.GetQueryArg("player", PlayerName),
+                OnHighscoresLoaded);
         }
-    }
 
-    private T ProcessResponse<T>(string text)
-    {
-        try
+        private void OnHighscoresLoaded(ScoreEntries scoreEntries)
         {
-            var result = JsonUtility.FromJson<T>(text);
-            return result;
-        } 
-        catch (System.Exception e)
+            Debug.Log($"Highscores loaded");
+            UIController.Instance.SetHighscores(scoreEntries);
+        }
+
+        private void UploadScore(ScoreEntry scoreEntry)
         {
-            Debug.LogError($"Error while processing response");
-            Debug.LogException(e);
-            return default(T);
+            Debug.Log($"Uploading score..");
+            UIController.Instance.LoadingHighscores = true;
+            WebUtils.SendPostRequest<ScoreEntries>(BaseUrl + "add_score", scoreEntry,
+                OnHighscoresLoaded);
+        }
+
+        public void SendStartGame()
+        {
+            WebUtils.StopRequestCoroutine(_sendStartCoroutine);
+            _sendStartCoroutine = WebUtils.SendGetRequest<PlayGuid>(BaseUrl + "game_started",
+                (playGuid) => { _playGuid = playGuid.guid; });
         }
     }
 }

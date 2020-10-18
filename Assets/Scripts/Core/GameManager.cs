@@ -1,31 +1,64 @@
-﻿using NaughtyAttributes;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Highscores;
+using JetBrains.Annotations;
+using NaughtyAttributes;
 using UnityEngine;
+using Utils;
 
+// ReSharper disable once CheckNamespace
 public class GameManager : MonoSingleton<GameManager>
 {
-    [BoxGroup("Highscores Settings")] public string serverBaseUrl = "http://127.0.0.1:8000/";
+    [BoxGroup("Highscores Settings")]
+    public bool debugMode = false;
+    
+    [BoxGroup("Highscores Settings")]
+    public bool forceProdServer = true;
 
-    [BoxGroup("Player Settings")] public int maxPlayerLives = 3;
-    [BoxGroup("Player Settings")] public float playerInvincibilityTime = 3f;
-    [BoxGroup("Player Settings")] public float playerRespawnDelay = 2f;
-    [BoxGroup("Player Settings")] public int playerDeathReward = 100;
+    [BoxGroup("Highscores Settings")]
+    public string testServerBaseUrl = "http://127.0.0.1:8000/";
 
-    [BoxGroup("Enemies Settings")] public float enemySpawnCooldown = 2f;
-    [BoxGroup("Enemies Settings")] public float asteroidRandomDistanceFromTarget = 2f;
-    [BoxGroup("Enemies Settings")] public float enemySpaceshipSpawnChance = 0.05f;
+    [BoxGroup("Highscores Settings")]
+    public string serverBaseUrl = "http://127.0.0.1:8000/";
+    
+    [BoxGroup("Player Settings")]
+    public int maxPlayerLives = 3;
 
-    [BoxGroup("Other Settings")] public float offscreenOffset = 1f;
+    [BoxGroup("Player Settings")]
+    public float playerInvincibilityTime = 3f;
 
-    [Header("Prefabs")] 
+    [BoxGroup("Player Settings")]
+    public float playerRespawnDelay = 2f;
+
+    [BoxGroup("Player Settings")]
+    public int playerDeathReward = 100;
+
+    [BoxGroup("Enemies Settings")]
+    public float enemySpawnCooldown = 2f;
+
+    [BoxGroup("Enemies Settings")]
+    public float asteroidRandomDistanceFromTarget = 2f;
+
+    [BoxGroup("Enemies Settings")]
+    public float enemySpaceshipSpawnChance = 0.05f;
+
+    [BoxGroup("Other Settings")]
+    public float offscreenOffset = 1f;
+
+    [Header("Prefabs")]
     public List<Asteroid> asteroidPrefabs = new List<Asteroid>();
+
     public List<EnemySpaceship> enemySpaceships = new List<EnemySpaceship>();
 
-    bool gameOver = true;
-    float enemySpawnCooldownLeft;
+    private bool _gameOver = true;
+    private float _enemySpawnCooldownLeft;
 
+    [PublicAPI]
     public Bounds PlayAreaBounds { get; private set; }
+
+    [PublicAPI]
     public Vector3 TopRightBoundCorner { get; private set; }
+
+    [PublicAPI]
     public Vector3 BotLeftBoundCorner { get; private set; }
 
     public Camera MainCam { get; private set; }
@@ -33,29 +66,33 @@ public class GameManager : MonoSingleton<GameManager>
 
     public SpaceshipController Player { get; private set; }
 
-    int score;
+    private int _score;
+
+    [PublicAPI]
     public int Score
     {
-        get => score; 
+        get => _score;
         set
         {
-            score = value;
-            UIController.Instance.UpdateScoreText(score);
+            _score = value;
+            UIController.Instance.UpdateScoreText(_score);
         }
     }
 
-    int lives;
+    int _lives;
+
+    [PublicAPI]
     public int Lives
     {
-        get => lives; 
+        get => _lives;
         set
         {
-            lives = value;
-            UIController.Instance.UpdateLivesCount(lives);
+            _lives = value;
+            UIController.Instance.UpdateLivesCount(_lives);
         }
     }
 
-    List<Entity> spawnedEntities = new List<Entity>();
+    private readonly List<Entity> _spawnedEntities = new List<Entity>();
 
     private void Awake()
     {
@@ -65,7 +102,7 @@ public class GameManager : MonoSingleton<GameManager>
         PlayAreaBounds = MainCam.OrthographicBounds();
         TopRightBoundCorner = PlayAreaBounds.center + PlayAreaBounds.extents;
         BotLeftBoundCorner = PlayAreaBounds.center - PlayAreaBounds.extents;
-    }    
+    }
 
     private void Start()
     {
@@ -74,9 +111,9 @@ public class GameManager : MonoSingleton<GameManager>
 
     public void Update()
     {
-        if (!gameOver)
+        if (!_gameOver)
         {
-            if (enemySpawnCooldownLeft <= 0)
+            if (_enemySpawnCooldownLeft <= 0)
             {
                 if (Random.value > enemySpaceshipSpawnChance)
                 {
@@ -91,7 +128,7 @@ public class GameManager : MonoSingleton<GameManager>
             }
             else
             {
-                enemySpawnCooldownLeft -= Time.deltaTime;
+                _enemySpawnCooldownLeft -= Time.deltaTime;
             }
 
             if (Input.GetKeyUp(KeyCode.R))
@@ -101,7 +138,7 @@ public class GameManager : MonoSingleton<GameManager>
         }
     }
 
-    public void ShowMenuIntro()
+    public static void ShowMenuIntro()
     {
         IntroAnimator.Instance.ShowIntro();
     }
@@ -112,53 +149,56 @@ public class GameManager : MonoSingleton<GameManager>
         Lives = maxPlayerLives;
     }
 
-    [NaughtyAttributes.Button]
+    [Button]
+    [PublicAPI]
     public void StartNewGame()
     {
         Debug.Log("Starting new game");
         ResetGame();
         DestroyEntities();
         ResetEnemySpawnCooldown();
-        Player.Respawn();        
-        gameOver = false;
+        Player.Respawn();
+        _gameOver = false;
         UIController.Instance.ShowGameUI();
         IntroAnimator.Instance.ShowingIntro = false;
+        HighscoresManager.Instance.SendStartGame();
     }
 
+    [PublicAPI]
     public void SetGameOver()
     {
         Debug.Log("Game Over");
-        gameOver = true;
+        _gameOver = true;
         UIController.Instance.ShowGameOverScreen();
 
         Invoke(nameof(DestroyEntities), 0.5f);
     }
 
-    void ResetEnemySpawnCooldown()
+    private void ResetEnemySpawnCooldown()
     {
-        enemySpawnCooldownLeft = enemySpawnCooldown;
+        _enemySpawnCooldownLeft = enemySpawnCooldown;
     }
 
-    void DestroyEntities()
+    private void DestroyEntities()
     {
-        while(spawnedEntities.Count > 0)
+        while (_spawnedEntities.Count > 0)
         {
-            var entity = spawnedEntities[0];
+            var entity = _spawnedEntities[0];
             if (entity != null)
             {
                 entity.DestroyEntity();
             }
 
-            spawnedEntities.Remove(entity);
+            _spawnedEntities.Remove(entity);
         }
     }
 
-    internal void OnPlayerDied()
+    public void SetPlayerDied()
     {
         Lives--;
         RewardPlayer(playerDeathReward);
 
-        if(Lives <= 0)
+        if (Lives <= 0)
         {
             SetGameOver();
         }
@@ -168,41 +208,44 @@ public class GameManager : MonoSingleton<GameManager>
         }
     }
 
-    void RespawnPlayer()
+    private void RespawnPlayer()
     {
         Player.Respawn();
     }
 
-    [NaughtyAttributes.Button]
-    void SpawnAsteroid()
+    [Button]
+    private void SpawnAsteroid()
     {
-        Asteroid asteroidPrefab = asteroidPrefabs[UnityEngine.Random.Range(0, asteroidPrefabs.Count)];
+        var asteroidPrefab =
+            asteroidPrefabs[Random.Range(0, asteroidPrefabs.Count)];
         var asteroid = Instantiate(asteroidPrefab, GetRandomOffscreenPoint(), Quaternion.identity);
         asteroid.SetRandomSkin();
-        asteroid.SetForceTowardPoint(UnityEngine.Random.insideUnitSphere * asteroidRandomDistanceFromTarget);
+        asteroid.SetForceTowardPoint(Random.insideUnitSphere *
+                                     asteroidRandomDistanceFromTarget);
 
-        spawnedEntities.Add(asteroid);
+        _spawnedEntities.Add(asteroid);
     }
 
-    [NaughtyAttributes.Button]
-    void SpawnEnemy()
+    [Button]
+    private void SpawnEnemy()
     {
-        var enemy = Instantiate(enemySpaceships[UnityEngine.Random.Range(0, enemySpaceships.Count)], GetRandomOffscreenPoint(), Quaternion.identity);
+        var enemy = Instantiate(enemySpaceships[Random.Range(0, enemySpaceships.Count)],
+            GetRandomOffscreenPoint(), Quaternion.identity);
         enemy.Init();
 
-        spawnedEntities.Add(enemy);
+        _spawnedEntities.Add(enemy);
     }
 
     public void AddSpawnedEntity(Entity entity)
     {
-        spawnedEntities.Add(entity);
+        _spawnedEntities.Add(entity);
     }
 
     public void RemoveDeadEntity(Entity entity)
     {
-        if(spawnedEntities.Contains(entity))
+        if (_spawnedEntities.Contains(entity))
         {
-            spawnedEntities.Remove(entity);
+            _spawnedEntities.Remove(entity);
         }
     }
 
@@ -213,15 +256,16 @@ public class GameManager : MonoSingleton<GameManager>
 
     #region Helper Methods
 
+    [PublicAPI]
     public Vector3 GetRandomOffscreenPoint()
     {
-        Vector2 rndPos = Vector2.zero;
+        var rndPos = Vector2.zero;
 
-        if (UnityEngine.Random.value > 0.5f)
+        if (Random.value > 0.5f)
         {
-            rndPos.x = UnityEngine.Random.Range(BotLeftBoundCorner.x, TopRightBoundCorner.x);
+            rndPos.x = Random.Range(BotLeftBoundCorner.x, TopRightBoundCorner.x);
 
-            if (UnityEngine.Random.value > 0.5f)
+            if (Random.value > 0.5f)
             {
                 rndPos.y = TopRightBoundCorner.y + offscreenOffset;
             }
@@ -232,9 +276,9 @@ public class GameManager : MonoSingleton<GameManager>
         }
         else
         {
-            rndPos.y = UnityEngine.Random.Range(BotLeftBoundCorner.y, TopRightBoundCorner.y);
+            rndPos.y = Random.Range(BotLeftBoundCorner.y, TopRightBoundCorner.y);
 
-            if (UnityEngine.Random.value > 0.5f)
+            if (Random.value > 0.5f)
             {
                 rndPos.x = TopRightBoundCorner.x + offscreenOffset;
             }
@@ -252,14 +296,16 @@ public class GameManager : MonoSingleton<GameManager>
         var nrm = (normalizedPosition + Vector2.one) * 0.5f;
         return new Vector2
         {
-            x = Mathf.Lerp(BotLeftBoundCorner.x - offscreenOffset, TopRightBoundCorner.x + offscreenOffset, nrm.x),
-            y = Mathf.Lerp(BotLeftBoundCorner.y - offscreenOffset, TopRightBoundCorner.y + offscreenOffset, nrm.y),
+            x = Mathf.Lerp(BotLeftBoundCorner.x - offscreenOffset,
+                TopRightBoundCorner.x + offscreenOffset, nrm.x),
+            y = Mathf.Lerp(BotLeftBoundCorner.y - offscreenOffset,
+                TopRightBoundCorner.y + offscreenOffset, nrm.y),
         };
     }
 
     public Vector2 GetRandomPointInPlayArea()
     {
-        var rnd = (UnityEngine.Random.insideUnitCircle + Vector2.one) * 0.5f;
+        var rnd = (Random.insideUnitCircle + Vector2.one) * 0.5f;
         return new Vector2
         {
             x = Mathf.Lerp(BotLeftBoundCorner.x, TopRightBoundCorner.x, rnd.x),
@@ -269,33 +315,44 @@ public class GameManager : MonoSingleton<GameManager>
 
     public bool IsPointInPlayArea(Vector3 position)
     {
-        return position.x < TopRightBoundCorner.x 
-            && position.x > BotLeftBoundCorner.x
-            && position.y < TopRightBoundCorner.y
-            && position.y > BotLeftBoundCorner.y;
+        return position.x < TopRightBoundCorner.x
+               && position.x > BotLeftBoundCorner.x
+               && position.y < TopRightBoundCorner.y
+               && position.y > BotLeftBoundCorner.y;
     }
 
     #endregion
 
     #region Editor Help Buttons
 
-    [NaughtyAttributes.Button]
+    [Button]
+    [UsedImplicitly]
     public void DestroyPlayer()
     {
         Player.DestroyEntity();
     }
 
-    [NaughtyAttributes.Button]
+    [Button]
+    [UsedImplicitly]
     public void EndGame()
     {
         Lives = 0;
         Player.DestroyEntity();
     }
 
-    [NaughtyAttributes.Button]
+    [Button]
+    [UsedImplicitly]
     public void IncrementScoreBy100()
     {
         RewardPlayer(100);
+    }
+
+    [Button]
+    [UsedImplicitly]
+    public void ClearLocalScores()
+    {
+        PlayerPrefs.DeleteAll();
+        Debug.Log($"Scores cleared");
     }
 
     #endregion

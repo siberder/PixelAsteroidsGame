@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Highscores;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -128,7 +129,7 @@ public class UIController : MonoSingleton<UIController>
 
     internal void SetHighscores(ScoreEntries scoreEntries)
     {
-        if (scoreEntries != null && scoreEntries.entries != null)
+        if (scoreEntries?.entries != null)
         {
             foreach (var scoreEntry in spawnedHighscoreEntries)
             {
@@ -137,10 +138,25 @@ public class UIController : MonoSingleton<UIController>
 
             spawnedHighscoreEntries.Clear();
 
+            bool playerScoreSpawned = false;
             foreach (var entry in scoreEntries.entries)
             {
+                if(string.IsNullOrEmpty(entry.player))
+                    continue;
+                
                 var scoreEntry = Instantiate(highscoreEntryPrefab, scoresScroll.content);
-                scoreEntry.Init(entry);
+                var isPlayer = entry.player == HighscoresManager.Instance.PlayerName;
+                scoreEntry.Init(entry, isPlayer);
+                spawnedHighscoreEntries.Add(scoreEntry);
+                if (isPlayer) playerScoreSpawned = true;
+            }
+
+            if (!playerScoreSpawned && scoreEntries.playerScore != null &&
+                !string.IsNullOrEmpty(scoreEntries.playerScore.player))
+            {
+                Debug.Log($"Player score: {scoreEntries.playerScore}");
+                var scoreEntry = Instantiate(highscoreEntryPrefab, scoresScroll.content);
+                scoreEntry.Init(scoreEntries.playerScore, true);
                 spawnedHighscoreEntries.Add(scoreEntry);
             }
 
@@ -167,7 +183,7 @@ public class UIController : MonoSingleton<UIController>
 
     public void UI_HighScores_NewGame()
     {
-        GameManager.Instance.ShowMenuIntro();
+        GameManager.ShowMenuIntro();
     }
 
     public void UI_Menu_Highscores()
