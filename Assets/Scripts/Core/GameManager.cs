@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Highscores;
 using JetBrains.Annotations;
 using NaughtyAttributes;
 using UnityEngine;
 using Utils;
+using Random = UnityEngine.Random;
 
 // ReSharper disable once CheckNamespace
 public class GameManager : MonoSingleton<GameManager>
@@ -51,6 +53,8 @@ public class GameManager : MonoSingleton<GameManager>
 
     private bool _gameOver = true;
     private float _enemySpawnCooldownLeft;
+    private int _screenWidth;
+    private int _screenHeight;
 
     [PublicAPI]
     public Bounds PlayAreaBounds { get; private set; }
@@ -99,9 +103,7 @@ public class GameManager : MonoSingleton<GameManager>
         MainCam = Camera.main;
         Player = FindObjectOfType<SpaceshipController>();
 
-        PlayAreaBounds = MainCam.OrthographicBounds();
-        TopRightBoundCorner = PlayAreaBounds.center + PlayAreaBounds.extents;
-        BotLeftBoundCorner = PlayAreaBounds.center - PlayAreaBounds.extents;
+        CalculateBoundsIfNeeded();
     }
 
     private void Start()
@@ -111,6 +113,8 @@ public class GameManager : MonoSingleton<GameManager>
 
     public void Update()
     {
+        CalculateBoundsIfNeeded();
+
         if (!_gameOver)
         {
             if (_enemySpawnCooldownLeft <= 0)
@@ -136,6 +140,19 @@ public class GameManager : MonoSingleton<GameManager>
                 StartNewGame();
             }
         }
+    }
+
+    private void CalculateBoundsIfNeeded()
+    {
+        if (_screenWidth == Screen.width && _screenHeight == Screen.height)
+            return;
+        
+        _screenWidth = Screen.width;
+        _screenHeight = Screen.height;
+
+        PlayAreaBounds = MainCam.OrthographicBounds();
+        TopRightBoundCorner = PlayAreaBounds.center + PlayAreaBounds.extents;
+        BotLeftBoundCorner = PlayAreaBounds.center - PlayAreaBounds.extents;
     }
 
     public static void ShowMenuIntro()

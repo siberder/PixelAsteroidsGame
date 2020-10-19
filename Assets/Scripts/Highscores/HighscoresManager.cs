@@ -83,7 +83,7 @@ namespace Highscores
         {
             WebUtils.StopRequestCoroutine(_sendStartCoroutine);
             _sendStartCoroutine = WebUtils.SendGetRequest<PlayGuid>(BaseUrl + "game_started",
-                (playGuid) => { _playGuid = playGuid.guid; });
+                (playGuid) => { _playGuid = playGuid?.guid; });
         }
     }
 }
